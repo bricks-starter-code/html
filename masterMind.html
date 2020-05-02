@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+<head>
+  <title>Master Brain</title>
+  <style type="text/css">
+    html,body {height:100%;}
+
+    body { background: gray !important; } /* Adding !important forces the browser to overwrite the default style applied by Bootstrap */
+
+    .fill {
+      min-height: 100%;
+      height: 100%;
+    }
+    .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  </style>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.4/vue.js" integrity="sha256-sawP1sLkcaA4YQJQWAtjahamgG6brGmaIJWRhYwDfno=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js" integrity="sha256-8E6QUcFg1KTnpEU8TFGhpTGHw5fJqB9vCms3OhAYLqw=" crossorigin="anonymous"></script>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.3/css/bootstrap-select.min.css">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.3/js/bootstrap-select.min.js"></script>
+
+</head>
+<body>
+<div id="app" class="container well fill" style="background-color: white">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Master Brain</a>
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="active"><a href="#">Guesses: {{turns}}</a></li>
+      </ul>
+    </div>
+  </nav>
+  <div>
+
+    <!--<div v-for="color in code">
+      {{color}}
+    </div>-->
+
+    <div class="row">
+      <div class="col-xs-1">
+
+      </div>
+      <div class="col-sm-2" v-for="(n, index) in numCols">
+        <div class="form-group">
+
+          <select class="form-control" v-model="currentGuess[index]" v-bind:style="{backgroundColor: currentGuess[index].value}">
+            <option  v-for="(color, j) in colors" v-bind:value="color"  v-bind:style="{backgroundColor: color.value}">
+              {{color.text}}
+            </option>
+          </select>
+        </div>
+
+      </div>
+      <div class="col-sm-2">
+        <button type="button" class="btn btn-primary btn-block" @click="submitGuess" v-bind:disabled="disableSubmit()">Guess</button>
+      </div>
+
+    </div>
+    <br />
+    <br />
+
+    <div class="row" v-for="guess in guesses">
+      <div class="col-xs-1">
+
+      </div>
+      <div class="col-sm-2" v-for="(n, index) in numCols" v-bind:style="{backgroundColor: guess.guess[index].value}">
+        {{guess.guess[index].text}}
+      </div>
+      <div class="col-sm-2">
+        {{guess.response}}
+      </div>
+    </div>
+    <div class="row" v-if="hasWon">
+      <div class="col-xs-1">
+      </div>
+      <div class="col-sm-10">
+        Congratulations, you won the game in {{turns}} turns. <a href="#" @click="startOver">Click here to start over.</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Master Brain</h4>
+        </div>
+        <div class="modal-body">
+          <p>This is a simple, one-page clone of the popular board game "Master Mind". It is meant as non-trival example of the use of VueJS and Bootstrap.</p>
+          <p>The goal of the game is to guess a key code composed on four columns, each with a unique color. When you "guess" a key combination, the program will tell you how many colors were in the right columns and how many were correct colors but in the wrong columns. Over a series of guesses, use process of elemination to get all the right colors in the right columns.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Start Playing!</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+</div>
+
+
+<script>
+https://stackoverflow.com/questions/10233550/launch-bootstrap-modal-on-page-load
+$(window).on('load',function(){
+        $('#myModal').modal('show');
+    });
+
+var survive = new Vue({
+  el: '#app',
+  data: {
+    numCols : 4,
+    colors : [
+      {text: 'red', value: '#ffcccc'},
+      {text: 'green', value: '#ccffcc'},
+      {text: 'blue', value: '#ccccff'},
+      {text: 'cyan', value: '#ccffff'},
+      {text: 'magenta', value: '#ffccff'},
+      {text: 'yellow', value: '#ffffcc'}],
+    code: [],
+    guesses : [],
+    currentGuess : [
+      {text: 'red', value: '#ffcccc'},
+      {text: 'green', value: '#ccffcc'},
+      {text: 'blue', value: '#ccccff'},
+      {text: 'cyan', value: '#ccffff'},],
+    hasWon : false,
+    turns : 0
+  },
+  methods: {
+    getContent : function(n)
+    {
+      let c = this.colors[n].text
+      return "<span style='background-color: " + c + "'>red</span>"
+    },
+    submitGuess : function(){
+      //First check to see if we even have a code yet
+      if(this.code.length == 0)
+      {
+        for(let i = 0; i < this.numCols; i++)
+        {
+          let color = this.colors[_.random(this.colors.length - 1)]
+          while(_.find(this.code, color))
+          {
+            color = this.colors[_.random(this.colors.length - 1)]
+          }
+          this.code.push(color);
+        }
+      }
+
+      let numRightPlace = 0;
+      let numWrongPlace = 0;
+
+      //Figure out the response
+      for(let i = 0; i < this.numCols; i++)
+      {
+        if(this.currentGuess[i].value === this.code[i].value)
+          numRightPlace++;
+        else {
+          for(let j = 0; j < this.numCols; j++)
+          {
+            if(this.currentGuess[i].value == this.code[j].value)
+            {
+              numWrongPlace++;
+              break;
+            }
+          }
+        }
+      }
+
+      let response = "" + numRightPlace + " perfect, " + numWrongPlace + " misplaced";
+
+      if(numRightPlace == 4)
+      {
+        this.hasWon = true;
+      }
+
+      //Deep array copy from https://gist.github.com/miguelmota/300445a06a342e47a335
+      let toAdd  = {guess: _.map(this.currentGuess, _.clone()), response: response};
+      this.guesses.push(toAdd);
+
+      //Now clear the guesses
+
+      this.turns++;
+    },
+    disableSubmit : function(){
+
+      if(this.hasWon)
+        return true;
+
+      for(let i = 0; i < this.numCols; i++)
+      {
+        if(!this.currentGuess[i])
+          return true;
+        if(_.chain(this.colors).map('text').find(this.currentGuess[i]).value())
+          return true;
+      }
+
+      return false;
+    },
+    startOver : function(){
+      this.code = [];
+      this.guesses = [];
+      this.currentGuess = [
+        {text: 'red', value: '#ffcccc'},
+        {text: 'green', value: '#ccffcc'},
+        {text: 'blue', value: '#ccccff'},
+        {text: 'cyan', value: '#ccffff'},];
+      this.hasWon = false;
+      this.turns = 0;
+    }
+  }
+})
+</script>
+</body>
+</html>
