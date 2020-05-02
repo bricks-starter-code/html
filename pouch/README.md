@@ -1,0 +1,3 @@
+# pouch
+
+Starter for pouchdb
