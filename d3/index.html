@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!-- Based on a tutorial from https://travishorn.com/updating-dynamic-data-in-d3-15ce4a9fa856-->
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>D3 Starter</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.7/d3.min.js"></script>
+</head>
+
+<body>
+
+  <svg width="600" height="120" id="mySVG"></svg>
+  <button id="addCircle" onClick="addCircle()">Add circle</button>
+  <button id="removeCircle" onClick="removeCircle()">Remove circle</button>
+  <script>
+
+
+
+    const data = [1, 1, 1]; // We want to visualize this as 3 circles
+    const circleRadius = 60;
+    const circleDiameter = circleRadius * 2;
+
+    function plot(data, svg) {
+      const t = d3.transition()
+        .duration(1000)
+        .ease(d3.easeBack)
+        ;
+
+      const circle = svg
+        .selectAll('circle')
+        .data(data)
+        .join(
+          enter => enter
+            .append('circle')
+            .attr('cy', circleRadius)
+            .attr('cx', (d, i) => circleRadius + (i * circleDiameter))
+            .attr('r', circleRadius / 2).call(enter => enter
+              .transition(t)
+              .attr('r', circleRadius)),
+          update=>update,
+          exit => exit
+            .call(exit => exit.transition(t).style("opacity", "0").remove())
+        )
+
+
+
+
+
+    };
+
+    const svg = d3.select('#mySVG');
+    plot(data, svg);
+
+
+
+
+    function addCircle() {
+      if (data.length < 5) data.push(1);
+      plot(data, svg);
+    }
+    function removeCircle() {
+      data.pop();
+      plot(data, svg);
+    }
+
+
+
+  </script>
+
+</body>
+
+</html>
