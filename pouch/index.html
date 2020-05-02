@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+
+<head>
+  <title></title>
+  <style>
+  </style>
+</head>
+
+<body>
+  <div id='app'>
+    <h1> Todos <button @click="add()">+</button></h1>
+    <div v-for="(row,i) in rows" :key="i">
+      <input type="text" v-model="row.doc.title" @change="updater(row, 'title')"><button @click="deleteRow(row)">X</button>
+      <div v-for="(subRow,index) in row.doc.subs" :key="index">
+        You have a Sub <input type="text" v-model="subRow.value" @change="updater(row, 'subs')"><button @click="deleteSub(row, index)">X</button>
+      </div>
+      <div><button @click="addSub(row)">Add Sub</button></div>
+    </div>
+    <button @click="test()">Test</button>
+  </div>
+
+  <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
+  <script src='https://unpkg.com/vue'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb@6.3.4/dist/pouchdb.min.js"></script>
+
+  <script>
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        rows: [],
+        debouncedUpdate: {},
+      },
+      mounted() {
+        
+      },
+      methods: {
+        add() {
+          addTodo("New Todo");
+        },
+        deleteRow(row) {
+          db.remove(row.doc);
+        },
+        addSub(row) {
+          row.doc.subs.push({ value: "s" });
+          this.updater(row, 'subs');
+        },
+        deleteSub(row, index) {
+          row.doc.subs.splice(index, 1);
+          this.updater(row, 'subs');
+        },
+        async updater(row, field) {
+          var success = false;
+          let updatedValue = row.doc[field];
+          while (!success) {
+            await db.get(row.doc._id).then(function (doc) {
+              doc[field] = updatedValue;
+              db.put(doc).then(function (res) {
+                success = true;
+              }).catch(function (err) {
+                console.log("Put Err: " + err);
+              });
+            });
+          }
+        },
+        test() {
+          for (let i = 0; i < 10; i++) {
+            this.rows[0].doc.title += ("" + i);
+
+            this.updater(this.rows[0], "title");
+          }
+        }
+      },
+    });
+
+    var dbName = "four";
+    var serverName = ""; //should end with /
+    var db = new PouchDB(dbName);
+    var remoteCouch = serverName + dbName;
+
+    updatedDB();
+
+    var sync = PouchDB.sync(dbName, remoteCouch, { live: true, retry: true })
+      .on('change', (i) => { console.log("Change"); updatedDB(); })
+      .on('paused', (i) => { console.log("Paused"); })
+      .on('active', (i) => { console.log("Active"); updatedDB(); })
+      .on('denied', (i) => { console.log("Denied"); })
+      .on('complete', (i) => { console.log("Complete"); })
+      .on('error', (i) => { console.log("Error"); });
+
+    function addTodo(text) {
+      var todo = {
+        _id: new Date().toISOString(),
+        title: text,
+        subs: [],
+        completed: false
+      };
+      db.put(todo, function callback(err, result) {
+        if (err) return console.log("err posting todo : " + err);
+      });
+    }
+
+    var debouncedUpdate = null; 
+
+
+    function _updateDB() {
+      db.allDocs({ include_docs: true }, function (err, doc) {
+          console.log("updating rows based on server");
+          app.rows = doc.rows;
+        });
+
+    }
+    function updatedDB() {
+      if(!debouncedUpdate){
+        debouncedUpdate = _.debounce(_updateDB, 1000);
+      }
+      debouncedUpdate();
+
+    }
+  </script>
+</body>
+</html>
