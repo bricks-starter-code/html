@@ -1,58 +1,56 @@
 <!doctype html>
 <html>
-
 <head>
   <title></title>
-   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
-   <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
-   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 
 <body>
   <div id='app'>
-      <v-app>
-          <v-content>
-            <v-container>
-              <v-layout>
-                <v-flex>
-                  <v-card>
-                    <v-card-title>
-                      Hello World
-                    </v-card-title>
-                  </v-card>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-content>
-        </v-app>
-   
+    <v-app>
+      <v-content>
+        <v-container>
+          <v-row>
+            <v-col cols=12 v-for="row in rows" :key="row.name">
+              <v-card>
+                <v-card-title>
+                  {{row.name}}
+                </v-card-title>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-content>
+    </v-app>
   </div>
 
   <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
   <script src='https://unpkg.com/vue'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js'></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
-  
 
   <script>
 
-    var app = new Vue({
+    const app = new Vue({
       el: '#app',
       vuetify: new Vuetify(),
       data: {
-        rows: [],
+        rows: [
+          {
+            name: "One"
+          },
+          {
+            name: "Two"
+          }
+        ],
       },
       methods: {
-       
+
       },
     });
 
-   
-
-   
-
   </script>
-
 </body>
-
 </html>
