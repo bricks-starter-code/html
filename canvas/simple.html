@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Canvas</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function main() {
+            timerID = setTimeout(tick, 33);
+        }
+
+        function tick() {
+            update();
+            drawCanvas();
+            timerID = setTimeout(tick, 33);
+        }
+
+
+        function update() {
+            canvas = document.getElementById("canv");
+            canvas.style.width = window.innerWidth + "px"
+            canvas.style.height = window.innerHeight + "px"
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function drawCanvas() {
+            var ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</head>
+
+<body onload="main()">
+    <canvas id="canv"></canvas>
+</body>
+
+</html>
