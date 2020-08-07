@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>D3 Pan, Zoom, Drag Grid</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.7/d3.min.js"></script>
+    <link rel="stylesheet" href="./css/all.css" />
+</head>
+<body>
+    <svg width="600" height="600" id="mySVG"></svg>
+    <button id="addCircle" onClick="addCircle()">Add circle</button>
+    <script>
+
+        const data = [{ x: 100, y: 100 }, { x: 200, y: 100 }, { x: 300, y: 100 }]; // We want to visualize this as 3 circles
+        
+        const svg = d3.select('#mySVG');
+
+        let width = 600;
+        let height = 600;
+        let zoomExtent = 4;
+
+        svg.attr("viewBox", [0, 0, width, height]);
+
+        const g = svg.append("g");
+        const background = g.append("g");
+        
+
+        //Grid from http://jsfiddle.net/L3075pd4/
+        //and https://stackoverflow.com/questions/31698668/d3-js-how-can-i-make-an-infinite-background-grid
+        var numBoxes = 100;
+        var arr = d3.range(-numBoxes, numBoxes + 1);
+        var boxSize = width * zoomExtent / numBoxes;
+
+        var boxEnter = background.selectAll("line").data(arr).enter();
+
+        boxEnter
+            .append("line")
+            .attr("x1", function (d) { return d * boxSize })
+            .attr("x2", function (d) { return d * boxSize; })
+            .attr("y1", -height * zoomExtent)
+            .attr("y2", height * zoomExtent)
+            .style("stroke", (d,i) => i % 2 ? "gray" : "lightgray");
+        boxEnter.append("line")
+            .attr("x1", -width * zoomExtent)
+            .attr("x2", width * zoomExtent)
+            .attr("y1", function (d) { return d * boxSize })
+            .attr("y2", function (d) { return d * boxSize })
+            .style("stroke", (d,i) => i % 2 ? "gray" : "lightgray");
+
+        function process(d) {
+            const circle = g
+                .selectAll('.glyph')
+                .data(data)
+                .join("text")
+                .classed("glyph", true)
+                .attr('x', d => d.x)
+                .attr('y', d => d.y)
+                .attr('font-family', "'Font Awesome 5 Pro'")
+                .attr('font-weight', 900)
+                .text(d => '\uf233')
+
+                .call(d3.drag().on("drag", dragged))
+                .on("click", clicked)
+        }
+
+        svg.call(d3.zoom()
+            .translateExtent([[-width, -height], [width, height]])
+            .scaleExtent([1/zoomExtent, zoomExtent])
+            .on("zoom", zoomed));
+
+        function zoomed() {
+            g.attr("transform", d3.event.transform);
+        }
+
+        function dragged(d) {
+            d.x = d3.event.x;
+            d.y = d3.event.y;
+            d3.select(this).attr('x', d => d.x)
+            d3.select(this).attr('y', d => d.y)
+        }
+
+        function clicked(d) {
+            console.log("click");
+        }
+
+        function addCircle() {
+            if (data.length < 5) data.push({ x: 100, y: 100 });
+            process(data)
+        }
+        
+        process(data);
+    </script>
+</body>
+</html>
