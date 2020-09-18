@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Binary Tree</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.7/d3.min.js"></script>
+  <style>
+    .circle-text{
+      fill:white;
+      text-anchor:middle;
+      font-family: 'Roboto', sans-serif;
+      transform:translate(0,3px);
+    }
+  </style>
+</head>
+
+<body>
+  <svg width="600" height="600" id="mySVG"></svg>
+  <button id="addCircle" onClick="addCircle()">Add word</button>
+  <script>
+
+    const golf = { name: "golf", left: null, right: null };
+    const mike = { name: "mike", left: null, right: null };
+    const sierra = { name: "sierra", left: null, right: null };
+    const alpha = { name: "alpha", left: null, right: null };
+    const charley = { name: "charley", left: null, right: null };
+    const beta = { name: "beta", left: null, right: null };
+    const delta = { name: "delta", left: null, right: null };
+    const echo = { name: "echo", left: null, right: null };
+
+    const toAddArray = [golf, sierra, alpha, charley, beta, delta, echo];
+
+    let root = mike;
+    let data = [];
+    data.push(mike);
+
+    const width = 800;
+    const bump = 50;
+    const radius = 25;
+
+    const svg = d3.select('#mySVG');
+    svg.attr('width', width);
+    const base = svg.append('g');
+    base.attr('transform', `translate(0, ${3 * radius + 15})`);
+
+    const slot = svg.append('g');
+    slot.attr('transform', `translate(${width/2}, ${radius + 5})`);
+
+
+
+    function plot(data, svg) {
+      const t = d3.transition()
+        .duration(2000)
+        .ease(d3.easeBack);
+
+      const circle = base
+        .selectAll('g')
+        .data(data)
+        .join(
+          enter => enter
+            .append('g')
+            .attr('transform', d => `translate(${width / 2},-${radius * 2 + 10})`)
+            .call(enter => enter.transition(t)
+              .attr('transform', d => `translate(${d.x},${d.y})`)
+            )
+            .call(enter => {
+              enter
+                .append('line')
+                .attr('x1', "0")
+                .attr('y1', "0")
+                .attr('x2', d => ((d.endX - d.x) / 2))
+                .attr('y2', d => bump)
+                .attr('stroke', 'black')
+              enter
+                .append('line')
+                .attr('x1', "0")
+                .attr('y1', "0")
+                .attr('x2', d => ((d.startX - d.x) / 2))
+                .attr('y2', d => bump)
+                .attr('stroke', 'black')
+              enter
+                .append('circle')
+                .attr('r', radius)
+                .attr('fill', 'red')
+                .transition(t)
+                .attr('fill', 'black')
+
+              enter
+                .append('text')
+                .classed('circle-text', true)
+                .text(d => d.name);
+
+
+            }),
+          update => update,
+          exit => exit
+            .call(exit => exit.transition(t).style("opacity", "0").remove())
+        );
+
+      const waiting = slot
+        .selectAll('g')
+        .data(toAddArray, d => d.name)
+        .join(
+          enter => enter
+            .append('g')
+            .call(enter => {
+
+              enter
+                .append('circle')
+                .attr('r', radius)
+                .style('fill', 'red')
+              enter
+                .append('text')
+                .classed('circle-text', true)
+                .text(d => d.name);
+            }
+
+            ),
+          update => update,
+          exit => exit.remove()
+        )
+        .attr('transform', (d, i) => `translate(${i * (radius*2+5)},${0})`)
+    };
+
+    
+    function addCircle() {
+      let toAdd = toAddArray.shift();
+      data.push(toAdd);
+      if (!root)
+        root = toAdd;
+      else
+        add(root, toAdd);
+      update();
+    }
+
+    function add(parent, toAdd) {
+      if (toAdd.name < parent.name) {
+        if (!parent.left)
+          parent.left = toAdd;
+        else
+          add(parent.left, toAdd);
+      }
+      else {
+        if (!parent.right)
+          parent.right = toAdd;
+        else
+          add(parent.right, toAdd);
+      }
+    }
+
+    function calculatePositions(node, startX, endX, y) {
+      if (!node) return;
+      node.x = (endX - startX) / 2 + startX;
+      node.y = y;
+      node.startX = startX;
+      node.endX = endX;
+      calculatePositions(node.left, startX, node.x, node.y + bump);
+      calculatePositions(node.right, node.x, endX, node.y + bump);
+    }
+
+    function update() {
+      calculatePositions(mike, 0, width, 0);
+      plot(data, svg);
+    }
+
+    update();
+  </script>
+</body>
+
+</html>
