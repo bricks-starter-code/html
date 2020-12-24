@@ -12,37 +12,39 @@
         }
     </style>
 
-    <script type="text/javascript">
-        function main() {
-            timerID = setTimeout(tick, 33);
-        }
-
-        function tick() {
-            update();
-            drawCanvas();
-            timerID = setTimeout(tick, 33);
-        }
-
-
-        function update() {
-            canvas = document.getElementById("canv");
-            canvas.style.width = window.innerWidth + "px"
-            canvas.style.height = window.innerHeight + "px"
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        function drawCanvas() {
-            var ctx = canvas.getContext("2d");
-
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-    </script>
+    
 </head>
 
 <body onload="main()">
     <canvas id="canv"></canvas>
+    
+    <script type="text/javascript">
+      function main() {
+          timerID = setTimeout(tick, 33);
+      }
+
+      function tick() {
+          update();
+          drawCanvas();
+          timerID = setTimeout(tick, 33);
+      }
+
+
+      function update() {
+          canvas = document.getElementById("canv");
+          canvas.style.width = window.innerWidth + "px"
+          canvas.style.height = window.innerHeight + "px"
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+      }
+
+      function drawCanvas() {
+          var ctx = canvas.getContext("2d");
+
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+  </script>
 </body>
 
 </html>
