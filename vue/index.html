@@ -1,184 +1,57 @@
 <!doctype html>
 <html>
-
 <head>
-  <title>Title</title>
+  <title></title>
   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-  <style>
-  </style>
+  <link href="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" rel="icon" type="image/x-icon" /><!--tiny.cc/emptyimage-->
 </head>
 
 <body>
   <div id='app'>
     <v-app>
-      <v-content>
-        <v-container grid-list-sm>
-          <v-layout row wrap>
-            <v-flex xs12>
+      <v-main>
+        <v-container>
+          <v-row>
+            <v-col cols=12 v-for="row in rows" :key="row.name">
               <v-card>
                 <v-card-title>
-                  <div class="display-1">Todos</div>
-                  <v-btn class="button button-primary flat blue" @click="add('paper')">Add</v-btn>
+                  {{row.name}}
                 </v-card-title>
               </v-card>
-            </v-flex>
-            <v-flex xs12 v-for="row in dbs['paper']" :key="row.id">
-              <v-card>
-                <v-card-text>
-                  <div>
-                    <v-text-field label="Todo title" v-model.lazy="row.doc.title" @change="updater(row, 'paper')">
-                  </div>
-                  <div>
-                    <v-btn class="button red" @click="deleteRow(row, 'paper')">Delete</v-btn>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-flex>-
-          </v-layout>
-          <v-layout row wrap>
-            <v-flex xs12>
-              <v-card>
-                <v-card-title>
-                  <div class="display-1">Other Todos</div>
-                  <v-btn class="button button-primary flat blue" @click="add('paper_project')">Add</v-btn>
-                </v-card-title>
-              </v-card>
-            </v-flex>
-            <v-flex xs12 v-for="row in dbs['paper_project']" :key="row.id">
-              <v-card>
-                <v-card-text>
-                  <div>
-                    <v-text-field label="Todo title" v-model.lazy="row.doc.title" @change="updater(row, 'paper_project')">
-                  </div>
-                  <div>
-                    <v-btn class="button red" @click="deleteRow(row, 'paper_project')">Delete</v-btn>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-flex>-
-          </v-layout>
+            </v-col>
+          </v-row>
         </v-container>
-      </v-content>
+      </v-main>
     </v-app>
   </div>
 
   <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
   <script src='https://unpkg.com/vue'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js'></script>
-  <script src="https://cdn.jsdelivr.net/npm/pouchdb@6.3.4/dist/pouchdb.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 
   <script>
 
-    var app = new Vue({
+    const app = new Vue({
       el: '#app',
+      vuetify: new Vuetify(),
       data: {
-        dbs: {},
-        localDBs: {},
+        rows: [
+          {
+            name: "One"
+          },
+          {
+            name: "Two"
+          }
+        ],
       },
-
       methods: {
-        //Add a new document to a collection
-        add(collection) {
-          var newDocument = {
-            _id: new Date().toISOString()
-          };
-          app.localDBs[collection].put(newDocument)
-            .then(result => {
-              //Any logic after a new item is created
-            })
-            .catch(err => {
-              console.log("Error creating new item " + err);
-            });
-        },
-        //Update a document in a collection
-        updater(document, collection) {
-          console.log("Calling updater on " + collection);
-          app.localDBs[collection].get(document.doc._id)
-            .then(result => {
-              document.doc._rev = result._rev;
-              app.localDBs[collection].put(document.doc);
-            })
-            .catch(err => {
-              console.log("error updating doc " + err);
-            });
 
-        },
-        //Delete a document in a collection
-        deleteRow(document, collection) {
-          console.log("Calling remove");
-          app.localDBs[collection].get(document.id)
-            .then(doc => {
-              doc._deleted = true;
-
-              app.localDBs[collection].put(doc);
-            })
-            .then(result => {
-              console.log(JSON.stringify(result));
-            })
-            .catch(err => {
-              console.log("error deleting doc " + err);
-            });
-        }
       },
     });
 
-
-    createSync('paper_project', 'couchURL');
-    createSync('paper', 'couchURL')
-
-    //Setup PouchDB to sync with a CouchDB instance.
-    function createSync(collection, remoteURL) {
-      let localDB = new PouchDB(collection);
-      let remoteDB = remoteURL + collection;
-      
-      //One time sync to get us started
-      localDB.sync(remoteDB).on('complete', function () {
-        localDB.allDocs({ include_docs: true }, function (err, doc) {
-          //This funny syntax is required by Vue, see "Reactivity in Depth"
-          app.dbs = Object.assign({}, app.dbs, { [collection]: doc.rows });
-        });
-      }).on('error', function (err) {
-        // boo, we hit an error!
-      });
-
-      //Now synce all remaining changes
-      localDB.sync(remoteDB, { live: true, retry: true });
-
-      //Update our Vue data to any changes that occur
-      localDB.changes({ since: 'now', live: true, include_docs: true })
-        .on('change', change => {
-          console.log("Change notification " + JSON.stringify(change));
-          let id = change.id;
-          let index = app.dbs[collection].findIndex(o => o.id == id);
-          if (change.deleted) {
-            if (index == -1) {
-              //This shouldn't happen
-              console.log("Got a delete change for a document we don't have. Aborting");
-              return;
-            }
-            app.dbs[collection].splice(index, 1);
-            return;
-          }
-          let doc = change.doc;
-          if (index == -1) {
-            //We don't have this doc, so its an insert
-            app.dbs[collection].push({ doc, id });
-          } else {
-            //We have this doc, so it's an update
-            app.dbs[collection][index].doc = doc;
-          }
-        })
-        .on('error', function (err) {
-          console.log("Error in the change feed " + err);
-        });
-
-      app.localDBs[collection] = localDB;
-    }
-
   </script>
 </body>
-
 </html>
